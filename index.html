@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tawsela - توصيلة | مواصلات الجامعات الخاصة</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Cairo', sans-serif; overflow-x: hidden; transition: background 0.3s, color 0.3s; }
+        html { scroll-behavior: smooth; }
+
+        /* Variables & Theme Management */
+        :root {
+            --emerald: #10b981;
+            --emerald-dark: #059669;
+            --bg-primary: #f8fafc;
+            --bg-secondary: #ffffff;
+            --bg-cards: #ffffff;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --border-color: #e2e8f0;
+            --navbar-bg: rgba(15, 23, 42, 0.8);
+            --navbar-scrolled: rgba(15, 23, 42, 0.95);
+        }
+
+        [data-theme="dark"] {
+            --bg-primary: #0f172a;
+            --bg-secondary: #1e293b;
+            --bg-cards: #1e293b;
+            --text-main: #f1f5f9;
+            --text-muted: #94a3b8;
+            --border-color: #334155;
+            --navbar-bg: rgba(15, 23, 42, 0.85);
+            --navbar-scrolled: rgba(15, 23, 42, 0.98);
+        }
+
+        body { background: var(--bg-primary); color: var(--text-main); }
+
+        /* Animation Classes (Scroll Reveal) */
+        .reveal {
+            opacity: 0;
+            transform: translateY(50px);
+            transition: opacity 0.8s cubic-bezier(0.4, 0, 0.2, 1), transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+            will-change: opacity, transform;
+        }
+        .reveal.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Navbar */
+        .navbar {
+            position: fixed; top: 0; left: 0; right: 0; z-index: 50;
+            padding: 1rem 0; transition: all 0.3s;
+            background: var(--navbar-bg); backdrop-filter: blur(10px);
+        }
+        .navbar.scrolled {
+            background: var(--navbar-scrolled);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+            padding: 0.5rem 0;
+        }
+        .nav-container {
+            max-width: 1200px; margin: 0 auto; padding: 0 1.5rem;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .logo { display: flex; align-items: center; gap: 0.5rem; text-decoration: none; }
+        .logo-icon {
+            width: 40px; height: 40px; background: var(--emerald);
+            border-radius: 10px; display: flex; align-items: center; justify-content: center;
+        }
+        .logo-icon svg { width: 24px; height: 24px; color: white; }
+        .logo-text { color: white; font-weight: 800; font-size: 1.3rem; line-height: 1; }
+        .logo-sub { color: var(--emerald); font-size: 0.75rem; font-weight: 600; }
+        .nav-actions { display: flex; align-items: center; gap: 1.5rem; }
+        .nav-links { display: flex; gap: 2rem; align-items: center; }
+        .nav-links a {
+            color: #cbd5e1; text-decoration: none; font-weight: 600; font-size: 0.9rem;
+            transition: color 0.3s; position: relative;
+        }
+        .nav-links a:hover { color: var(--emerald); }
+        .nav-cta {
+            background: var(--emerald); color: white; padding: 0.6rem 1.5rem;
+            border-radius: 999px; text-decoration: none; font-weight: 700;
+            transition: all 0.3s; border: none; cursor: pointer;
+        }
+        .nav-cta:hover { background: var(--emerald-dark); transform: translateY(-2px); box-shadow: 0 10px 25px rgba(16,185,129,0.3); }
+        
+        /* Dark Mode Toggle Button */
+        .theme-toggle {
+            background: none; border: none; color: #cbd5e1; cursor: pointer;
+            padding: 0.5rem; display: flex; align-items: center; justify-content: center;
+            transition: color 0.3s;
+        }
+        .theme-toggle:hover { color: var(--emerald); }
+        .theme-toggle svg { width: 22px; height: 22px; fill: currentColor; }
+
+        .mobile-toggle { display: none; color: white; background: none; border: none; cursor: pointer; }
+
+        /* Hero */
+        .hero {
+            min-height: 100vh; position: relative; display: flex; align-items: center;
+            justify-content: center; overflow: hidden; background: #0f172a;
+            padding-top: 80px;
+        }
+        .hero-bg {
+            position: absolute; inset: 0; opacity: 0.25;
+            background: url('https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?q=80&w=2069&auto=format&fit=crop') center/cover;
+        }
+        .hero-overlay {
+            position: absolute; inset: 0;
+            background: linear-gradient(to bottom, rgba(15,23,42,0.8), rgba(15,23,42,0.6), rgba(15,23,42,1));
+        }
+        .hero-content {
+            position: relative; z-index: 10; max-width: 900px; text-align: center;
+            padding: 0 1.5rem; animation: fadeInUp 1s ease-out;
+        }
+        .badge {
+            display: inline-flex; align-items: center; gap: 0.5rem;
+            background: rgba(16,185,129,0.1); border: 1px solid rgba(16,185,129,0.2);
+            color: var(--emerald); padding: 0.4rem 1rem; border-radius: 999px;
+            font-size: 0.85rem; font-weight: 600; margin-bottom: 1.5rem;
+        }
+        .hero h1 { color: white; font-size: 3rem; font-weight: 800; line-height: 1.2; margin-bottom: 1.5rem; }
+        .hero h1 span { color: var(--emerald); }
+        .hero p { color: #cbd5e1; font-size: 1.2rem; line-height: 1.8; margin-bottom: 2rem; max-width: 700px; margin-left: auto; margin-right: auto; }
+        .hero-buttons { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; }
+        .btn-primary {
+            background: var(--emerald); color: white; padding: 1rem 2rem;
+            border-radius: 999px; text-decoration: none; font-weight: 700;
+            font-size: 1.1rem; transition: all 0.3s; border: none; cursor: pointer;
+        }
+        .btn-primary:hover { background: var(--emerald-dark); transform: translateY(-3px); box-shadow: 0 15px 35px rgba(16,185,129,0.3); }
+        .btn-secondary {
+            background: rgba(255,255,255,0.1); color: white; padding: 1rem 2rem;
+            border-radius: 999px; text-decoration: none; font-weight: 600;
+            font-size: 1.1rem; border: 1px solid rgba(255,255,255,0.1); backdrop-filter: blur(10px); transition: all 0.3s;
+        }
+        .btn-secondary:hover { background: rgba(255,255,255,0.2); }
+        .hero-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-top: 3rem; max-width: 700px; margin-left: auto; margin-right: auto; }
+        .stat-card { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 1rem; padding: 1rem; text-align: center; backdrop-filter: blur(10px); }
+        .stat-value { color: var(--emerald); font-size: 1.8rem; font-weight: 800; }
+        .stat-label { color: #94a3b8; font-size: 0.8rem; margin-top: 0.3rem; }
+
+        /* Sections General */
+        section { padding: 5rem 0; }
+        .container { max-width: 1200px; margin: 0 auto; padding: 0 1.5rem; }
+        .section-header { text-align: center; margin-bottom: 3rem; }
+        .section-badge { display: inline-flex; align-items: center; gap: 0.4rem; background: rgba(16,185,129,0.15); color: var(--emerald); padding: 0.3rem 0.8rem; border-radius: 999px; font-size: 0.8rem; font-weight: 700; margin-bottom: 1rem; }
+        .section-title { font-size: 2.2rem; color: var(--text-main); font-weight: 800; margin-bottom: 1rem; text-align: center; }
+        .section-desc { color: var(--text-muted); font-size: 1.1rem; max-width: 600px; margin: 0 auto; line-height: 1.7; text-align: center; }
+
+        /* About */
+        .about-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4rem; align-items: center; }
+        .about-img { position: relative; border-radius: 1.5rem; overflow: hidden; box-shadow: 0 25px 50px rgba(0,0,0,0.15); }
+        .about-img img { width: 100%; height: 450px; object-fit: cover; display: block; }
+        .about-img-overlay { position: absolute; bottom: 0; left: 0; right: 0; background: linear-gradient(to top, rgba(15,23,42,0.8), transparent); padding: 2rem; color: white; }
+        .about-badge-float {
+            position: absolute; top: 20px; right: 20px;
+            background: var(--bg-secondary); padding: 1rem; border-radius: 1rem;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1); display: flex; align-items: center; gap: 0.8rem;
+            animation: float 4s ease-in-out infinite; border: 1px solid var(--border-color);
+        }
+        .about-badge-float .icon { width: 40px; height: 40px; background: rgba(16,185,129,0.15); border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+        .benefits-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: 1.5rem; }
+        .benefit-card { background: var(--bg-cards); border: 1px solid var(--border-color); border-radius: 1rem; padding: 1.2rem; transition: all 0.3s; cursor: default; }
+        .benefit-card:hover { transform: translateY(-5px); border-color: var(--emerald); box-shadow: 0 10px 30px rgba(0,0,0,0.08); }
+        .benefit-icon { width: 48px; height: 48px; background: rgba(16,185,129,0.15); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: var(--emerald); margin-bottom: 0.8rem; transition: all 0.3s; }
+        .benefit-card:hover .benefit-icon { background: var(--emerald); color: white; }
+        .benefit-card h4 { color: var(--text-main); font-weight: 700; margin-bottom: 0.3rem; }
+        .benefit-card p { color: var(--text-muted); font-size: 0.85rem; line-height: 1.6; }
+
+        /* Universities */
+        .universities { background: var(--bg-secondary); }
+        .uni-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; }
+        .uni-card { background: var(--bg-primary); border-radius: 1.2rem; padding: 1.5rem; border: 1px solid var(--border-color); box-shadow: 0 2px 10px rgba(0,0,0,0.03); transition: all 0.3s; position: relative; overflow: hidden; }
+        .uni-card:hover { transform: translateY(-8px) scale(1.02); box-shadow: 0 20px 40px rgba(0,0,0,0.15); border-color: var(--emerald); }
+        .uni-card::before { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 4px; background: linear-gradient(to right, var(--emerald), #14b8a6); transform: scaleX(0); transition: transform 0.3s; }
+        .uni-card:hover::before { transform: scaleX(1); }
+        .uni-header { display: flex; justify-content: space-between; align-items: start; margin-bottom: 1rem; }
+        .uni-avatar { width: 56px; height: 56px; background: linear-gradient(135deg, var(--emerald), #0d9488); border-radius: 14px; display: flex; align-items: center; justify-content: center; color: white; font-weight: 800; font-size: 1.1rem; box-shadow: 0 8px 20px rgba(16,185,129,0.25); }
+        .uni-card h3 { color: var(--text-main); font-weight: 700; font-size: 1.1rem; margin-bottom: 0.2rem; }
+        .uni-card .ar { color: var(--emerald); font-weight: 600; font-size: 0.9rem; }
+
+        /* Media / Videos */
+        .media-section { background: var(--bg-primary); }
+        .video-box { position: relative; border-radius: 1.5rem; overflow: hidden; aspect-ratio: 16/9; max-width: 800px; margin: 2rem auto 0; cursor: pointer; background: #0f172a; box-shadow: 0 20px 40px rgba(0,0,0,0.2); }
+        .video-box img { width: 100%; height: 100%; object-fit: cover; opacity: 0.5; transition: opacity 0.3s; }
+        .video-box:hover img { opacity: 0.3; }
+        .video-play { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 80px; height: 80px; background: rgba(255,255,255,0.2); backdrop-filter: blur(10px); border: 2px solid rgba(255,255,255,0.3); border-radius: 50%; display: flex; align-items: center; justify-content: center; transition: all 0.3s; }
+        .video-box:hover .video-play { background: var(--emerald); border-color: var(--emerald); transform: translate(-50%, -50%) scale(1.1); }
+        .video-play svg { width: 30px; height: 30px; color: white; fill: white; margin-right: 4px; }
+
+        /* Booking */
+        .booking { background: #0f172a; position: relative; overflow: hidden; }
+        .booking::before { content: ''; position: absolute; inset: 0; background-image: radial-gradient(circle at 2px 2px, rgba(255,255,255,0.05) 1px, transparent 0); background-size: 40px 40px; }
+        .booking-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4rem; align-items: start; position: relative; z-index: 10; }
+        .booking-info h2 { color: white; font-size: 2.2rem; font-weight: 800; margin-bottom: 1rem; line-height: 1.3; }
+        .booking-info > p { color: #94a3b8; font-size: 1.1rem; line-height: 1.7; margin-bottom: 2rem; }
+        .feature-list { display: flex; flex-direction: column; gap: 1rem; margin-bottom: 2rem; }
+        .feature-item { display: flex; align-items: start; gap: 1rem; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 0.8rem; padding: 1rem; }
+        .feature-item .icon { width: 40px; height: 40px; background: rgba(16,185,129,0.2); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #34d399; flex-shrink: 0; }
+        .feature-item h4 { color: white; font-weight: 600; margin-bottom: 0.2rem; }
+        .feature-item p { color: #94a3b8; font-size: 0.85rem; }
+        .contact-boxes { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+        .contact-box { background: linear-gradient(135deg, var(--emerald), #0d9488); border-radius: 1rem; padding: 1.2rem; color: white; text-decoration: none; transition: transform 0.3s; }
+        .contact-box:hover { transform: translateY(-3px); }
+        .contact-box h4 { font-weight: 700; margin-bottom: 0.4rem; font-size: 1rem; }
+        .contact-box div { font-family: monospace; font-size: 1.1rem; font-weight: bold; }
+
+        /* Form */
+        .form-card { background: var(--bg-cards); border-radius: 1.5rem; padding: 2rem; box-shadow: 0 25px 50px rgba(0,0,0,0.3); border: 1px solid var(--border-color); }
+        .form-header h3 { font-size: 1.5rem; color: var(--text-main); font-weight: 800; }
+        .form-header p { color: var(--text-muted); font-size: 0.85rem; margin-top: 0.3rem; }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem; }
+        .form-group { margin-bottom: 1rem; }
+        .form-group label { display: block; color: var(--text-main); font-weight: 700; font-size: 0.85rem; margin-bottom: 0.4rem; }
+        .form-group input, .form-group select { width: 100%; padding: 0.8rem 1rem; border: 1px solid var(--border-color); border-radius: 0.8rem; font-family: 'Cairo', sans-serif; font-size: 0.9rem; color: var(--text-main); background: var(--bg-primary); outline: none; transition: all 0.3s; }
+        .form-group input:focus, .form-group select:focus { border-color: var(--emerald); box-shadow: 0 0 0 3px rgba(16,185,129,0.1); }
+        .submit-btn { width: 100%; padding: 1rem; background: var(--emerald); color: white; border: none; border-radius: 0.8rem; font-family: 'Cairo', sans-serif; font-size: 1rem; font-weight: 700; cursor: pointer; transition: all 0.3s; }
+        .submit-btn:hover { background: var(--emerald-dark); transform: translateY(-2px); box-shadow: 0 10px 25px rgba(16,185,129,0.3); }
+
+        /* Modal */
+        .modal-overlay { position: fixed; inset: 0; z-index: 100; background: rgba(0,0,0,0.6); backdrop-filter: blur(5px); display: none; align-items: center; justify-content: center; padding: 1rem; }
+        .modal-overlay.active { display: flex; }
+        .modal { background: var(--bg-cards); border-radius: 1.5rem; padding: 2rem; max-width: 450px; width: 100%; text-align: center; border: 1px solid var(--border-color); }
+        .modal-icon { width: 80px; height: 80px; background: rgba(16,185,129,0.15); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem; color: var(--emerald); font-size: 2rem; font-weight: bold; }
+        .modal h3 { font-size: 1.5rem; color: var(--text-main); font-weight: 800; margin-bottom: 0.5rem; }
+        .modal p { color: var(--text-muted); line-height: 1.7; margin-bottom: 1.5rem; }
+
+        /* Footer */
+        footer { background: #020617; color: #94a3b8; padding: 4rem 0 2rem; }
+        .footer-grid { display: grid; grid-template-columns: 2fr 1fr 1.5fr; gap: 3rem; margin-bottom: 3rem; }
+        .footer-brand p { font-size: 0.9rem; line-height: 1.7; margin-top: 1rem; }
+        .footer-col h4 { color: white; font-weight: 700; margin-bottom: 1.2rem; }
+        .footer-col ul { list-style: none; }
+        .footer-col li { margin-bottom: 0.6rem; }
+        .footer-col a { color: #94a3b8; text-decoration: none; font-size: 0.9rem; transition: color 0.3s; }
+        .footer-col a:hover { color: var(--emerald); }
+        .footer-bottom { border-top: 1px solid #1e293b; padding-top: 2rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; }
+
+        /* WhatsApp Float */
+        .whatsapp-float { position: fixed; bottom: 25px; left: 25px; z-index: 90; }
+        .whatsapp-btn { display: flex; align-items: center; gap: 0.5rem; background: #25D366; color: white; padding: 0.6rem 1.2rem; border-radius: 999px; text-decoration: none; box-shadow: 0 8px 25px rgba(37,211,102,0.4); transition: all 0.3s; font-weight: 700; }
+        .whatsapp-btn:hover { transform: translateY(-3px); box-shadow: 0 12px 35px rgba(37,211,102,0.5); }
+        .whatsapp-btn svg { width: 24px; height: 24px; fill: white; }
+
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(40px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .about-grid, .booking-grid { grid-template-columns: 1fr; gap: 2rem; }
+            .uni-grid { grid-template-columns: repeat(2, 1fr); }
+            .footer-grid { grid-template-columns: 1fr; }
+        }
+        @media (max-width: 768px) {
+            .hero h1 { font-size: 2rem; }
+            .hero-stats { grid-template-columns: repeat(2, 1fr); }
+            .nav-links { display: none; }
+            .mobile-toggle { display: block; }
+            .uni-grid, .form-row, .contact-boxes { grid-template-columns: 1fr; }
+        }
+        .mobile-menu { display: none; position: absolute; top: 100%; left: 0; right: 0; background: #0f172a; border-top: 1px solid #334155; padding: 1rem; }
+        .mobile-menu.active { display: block; }
+        .mobile-menu a { display: block; padding: 0.8rem; color: #cbd5e1; text-decoration: none; font-weight: 600; }
+    </style>
+</head>
+<body>
+
+    <nav class="navbar" id="navbar">
+        <div class="nav-container">
+            <a href="#hero" class="logo">
+                <div class="logo-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+                    </svg>
+                </div>
+                <div>
+                    <div class="logo-text">Tawsela</div>
+                    <div class="logo-sub">توصيلة</div>
+                </div>
+            </a>
+            <div class="nav-links">
+                <a href="#hero">الرئيسية</a>
+                <a href="#about">من نحن</a>
+                <a href="#universities">الجامعات</a>
+                <a href="#booking">احجز الآن</a>
+            </div>
+            <div class="nav-actions">
+                <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()" title="تغيير الوضع">
+                    <svg id="themeToggleIcon" viewBox="0 0 24 24"></svg>
+                </button>
+                <a href="#booking" class="nav-cta">احجز رحلتك</a>
+                <button class="mobile-toggle" onclick="toggleMenu()">
+                    <svg width="24" height="24" fill="none" stroke="white" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"/></svg>
+                </button>
+            </div>
+        </div>
+        <div class="mobile-menu" id="mobileMenu">
+            <a href="#hero" onclick="toggleMenu()">الرئيسية</a>
+            <a href="#about" onclick="toggleMenu()">من نحن</a>
+            <a href="#universities" onclick="toggleMenu()">الجامعات</a>
+            <a href="#booking" onclick="toggleMenu()">احجز الآن</a>
+        </div>
+    </nav>
+
+    <section class="hero" id="hero">
+        <div class="hero-bg"></div>
+        <div class="hero-overlay"></div>
+        <div class="hero-content">
+            <div class="badge">🛡️ خبرة 10 أعوام في نقل الطلاب الجامعيين</div>
+            <h1>رحلتك <span>الآمنة</span>، <span>الموثوقة</span>، و<span>الاقتصادية</span> للجامعة</h1>
+            <p>مواصلات متميزة وأفضل سعر لطلاب الجامعات الخاصة والأكاديميات والمعاهد في مصر. رحلات مريحة طوال السنة خطوة بخطوة لضمان مستقبلك.</p>
+            <div class="hero-buttons">
+                <a href="#booking" class="btn-primary">احجز رحلتك الآن</a>
+                <a href="#about" class="btn-secondary">تعرف أكثر</a>
+            </div>
+            <div class="hero-stats">
+                <div class="stat-card"><div class="stat-value">10</div><div class="stat-label">أعوام خبرة</div></div>
+                <div class="stat-card"><div class="stat-value">5K+</div><div class="stat-label">طالب سعيد</div></div>
+                <div class="stat-card"><div class="stat-value">9</div><div class="stat-label">جامعات مغطاة</div></div>
+                <div class="stat-card"><div class="stat-value">100%</div><div class="stat-label">أفضل سعر</div></div>
+            </div>
+        </div>
+    </section>
+
+    <section id="about" class="reveal">
+        <div class="container">
+            <div class="about-grid">
+                <div class="about-img">
+                    <img src="https://images.unsplash.com/photo-1570125909232-eb263c188f7e?q=80&w=2071&auto=format&fit=crop" alt="أتوبيسات توصيلة">
+                    <div class="about-img-overlay">
+                        <div style="font-weight:800;font-size:1.1rem;">خدمة متميزة وأفضل سعر</div>
+                    </div>
+                </div>
+                <div>
+                    <div class="section-badge">✨ لماذا توصيلة؟</div>
+                    <h2 class="section-title" style="text-align:right;">أكثر من مجرد رحلة، نحن شريك نجاحك الجامعي</h2>
+                    <p style="color:var(--text-muted); line-height:1.8;">على مدار 10 سنوات، تميزنا بتقديم خدمات نقل متكاملة وآمنة تماماً لطلاب الجامعات والمعاهد بأحدث الأتوبيسات المكيفة والمريحة طوال السنة المخصصة لتوفير أقصى سبل الراحة.</p>
+                    <div class="benefits-grid">
+                        <div class="benefit-card">
+                            <div class="benefit-icon">⭐</div>
+                            <h4>خدمة متميزة</h4>
+                            <p>التزام تام بالمواعيد اليومية والتحرك بأتوبيسات حديثة ومكيفة بالكامل.</p>
+                        </div>
+                        <div class="benefit-card">
+                            <div class="benefit-icon">💰</div>
+                            <h4>أفضل سعر</h4>
+                            <p>باقات اشتراك مرنة واقتصادية تناسب ميزانية جميع الطلاب وأولياء الأمور.</p>
+                        </div>
+                        <div class="benefit-card">
+                            <div class="benefit-icon">📅</div>
+                            <h4>رحلات طول السنة</h4>
+                            <p>متواجدون معك طوال العام الدراسي وفي فترات الامتحانات والترم الصيفي.</p>
+                        </div>
+                        <div class="benefit-card">
+                            <div class="benefit-icon">🛡️</div>
+                            <h4>أمان كامل</h4>
+                            <p>سائقون محترفون على أعلى مستوى من الكفاءة والخبرة بالطرق السريعة.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="universities" class="universities reveal">
+        <div class="container">
+            <div class="section-header">
+                <div class="section-badge">🎓 وجهاتنا</div>
+                <h2 class="section-title">الجامعات والأكاديميات التي نغطيها</h2>
+                <p class="section-desc">نوفر خطوط سير مباشرة وسريعة يومياً إلى كبرى الجامعات الخاصة والمعاهد</p>
+            </div>
+            <div class="uni-grid">
+                <div class="uni-card">
+                    <div class="uni-header"><div class="uni-avatar">BUE</div></div>
+                    <h3>الجامعة البريطانية</h3>
+                    <p class="ar">The British University in Egypt</p>
+                </div>
+                <div class="uni-card">
+                    <div class="uni-header"><div class="uni-avatar">BUC</div></div>
+                    <h3>جامعة بدر</h3>
+                    <p class="ar">Badr University in Cairo</p>
+                </div>
+                <div class="uni-card">
+                    <div class="uni-header"><div class="uni-avatar">ERU</div></div>
+                    <h3>الجامعة الروسية</h3>
+                    <p class="ar">Egyptian Russian University</p>
+                </div>
+                <div class="uni-card">
+                    <div class="uni-header"><div class="uni-avatar">SH.A</div></div>
+                    <h3>أكاديمية الشروق</h3>
+                    <p class="ar">Al-Shorouk Academy</p>
+                </div>
+                <div class="uni-card">
+                    <div class="uni-header"><div class="uni-avatar">AOU</div></div>
+                    <h3>الجامعة العربية المفتوحة</h3>
+                    <p class="ar">Arab Open University</p>
+                </div>
+                <div class="uni-card">
+                    <div class="uni-header"><div class="uni-avatar">UFE</div></div>
+                    <h3>الجامعة الفرنسية</h3>
+                    <p class="ar">Université Française d'Égypte</p>
+                </div>
+                <div class="uni-card">
+                    <div class="uni-header"><div class="uni-avatar">IUE</div></div>
+                    <h3>جامعة الابتكار</h3>
+                    <p class="ar">Innovation University</p>
+                </div>
+                <div class="uni-card">
+                    <div class="uni-header"><div class="uni-avatar">HIF</div></div>
+                    <h3>معهد الصفوة</h3>
+                    <p class="ar">Al-Safwa Institute</p>
+                </div>
+                <div class="uni-card">
+                    <div class="uni-header"><div class="uni-avatar">BI</div></div>
+                    <h3>معهد بلبيس</h3>
+                    <p class="ar">Belbeis Institute</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="media-section reveal">
+        <div class="container">
+            <div class="section-header">
+                <div class="section-badge">📺 معرض الميديا</div>
+                <h2 class="section-title">شاهد جودة خدماتنا</h2>
+                <p class="section-desc">فيديوهات توضيحية لأسطول أتوبيساتنا ومستوى الراحة والأمان الذي ينتظرك</p>
+            </div>
+            <div class="video-box" onclick="alert('هنا يمكنك ربط فيديو حقيقي من اليوتيوب أو ملف MP4 الخاص بالعميل!')">
+                <img src="https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?q=80&w=2069&auto=format&fit=crop" alt="فيديو باصات توصيلة">
+                <div class="video-play">
+                    <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="booking" class="booking reveal">
+        <div class="container">
+            <div class="booking-grid">
+                <div class="booking-info">
+                    <h2>ابدأ رحلتك معنا اليوم واحجز مقعدك بكل سهولة</h2>
+                    <p>احجز الآن إلكترونياً وسيقوم فريق خدمة العملاء بالتواصل معك مباشرة لتأكيد خط السير ومواعيد الانطلاق المتاحة لمنطقتك.</p>
+                    <div class="feature-list">
+                        <div class="feature-item">
+                            <div class="icon">✓</div>
+                            <div>
+                                <h4>تأكيد فوري</h4>
+                                <p>بمجرد ملء الاستمارة نراجع الأماكن المتاحة في منطقتك ونكلمك فوراً.</p>
+                            </div>
+                        </div>
+                        <div class="feature-item">
+                            <div class="icon">✓</div>
+                            <div>
+                                <h4>دعم متواصل على مدار الساعة</h4>
+                                <p>أرقامنا مفتوحة دائماً لتلقي استفساراتكم وحل أي مشكلات فوراً.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="contact-boxes">
+                        <a href="https://wa.me/201024412655" class="contact-box">
+                            <h4>تواصل عبر الواتساب (خط 1)</h4>
+                            <div>010 244 12 655</div>
+                        </a>
+                        <a href="https://wa.me/201067950709" class="contact-box">
+                            <h4>تواصل عبر الواتساب (خط 2)</h4>
+                            <div>010 679 50 709</div>
+                        </a>
+                    </div>
+                </div>
+
+                <div class="form-card">
+                    <div class="form-header">
+                        <h3>استمارة حجز المقعد</h3>
+                        <p>يرجى إدخال البيانات بدقة لضمان سرعة التواصل</p>
+                    </div>
+                    <form id="bookingForm" onsubmit="handleFormSubmit(event)">
+                        <div class="form-group">
+                            <label>اسم الطالب بالكامل</label>
+                            <input type="text" required placeholder="أدخل اسمك ثلاثي أو رباعي">
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>رقم هاتف الطالب</label>
+                                <input type="tel" required placeholder="01xxxxxxxxx">
+                            </div>
+                            <div class="form-group">
+                                <label>رقم هاتف ولي الأمر</label>
+                                <input type="tel" required placeholder="01xxxxxxxxx">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>الجامعة / الأكاديمية</label>
+                            <select required>
+                                <option value="" disabled selected>اختر الجامعة المستهدفة</option>
+                                <option>الجامعة البريطانية (BUE)</option>
+                                <option>جامعة بدر (BUC)</option>
+                                <option>الجامعة الروسية (ERU)</option>
+                                <option>أكاديمية الشروق</option>
+                                <option>الجامعة العربية المفتوحة</option>
+                                <option>الجامعة الفرنسية</option>
+                                <option>جامعة الابتكار</option>
+                                <option>معهد الصفوة</option>
+                                <option>معهد بلبيس</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>المنطقة السكنية (مكان الركوب)</label>
+                            <input type="text" required placeholder="مثال: مدينة نصر، مصر الجديدة، طنطا..">
+                        </div>
+                        <button type="submit" class="submit-btn">إرسال طلب الحجز الآن</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer id="footer">
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-brand">
+                    <h3 style="color:white; font-weight:800;">توصيلة - Tawsela</h3>
+                    <p>شريكك الموثوق والآمن في النقل الجامعي داخل مصر لضمان رحلات مريحة يومياً طوال العام الدراسي وبأفضل الأسعار التنافسية.</p>
+                </div>
+                <div class="footer-col">
+                    <h4>روابط سريعة</h4>
+                    <ul>
+                        <li><a href="#hero">الرئيسية</a></li>
+                        <li><a href="#about">من نحن</a></li>
+                        <li><a href="#universities">الجامعات</a></li>
+                        <li><a href="#booking">احجز الآن</a></li>
+                    </ul>
+                </div>
+                <div class="footer-col">
+                    <h4>أرقام التواصل الهاتفي</h4>
+                    <p style="color:#cbd5e1; margin-bottom: 0.5rem; font-family:monospace;">010 244 12 655</p>
+                    <p style="color:#cbd5e1; font-family:monospace;">010 679 50 709</p>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2026 جميع الحقوق محفوظة لشركة توصيلة لنقل الطلاب.</p>
+                <div style="font-size:0.85rem; color: var(--emerald);">🔒 نظام حجز آمن ومشفر بالكامل</div>
+            </div>
+        </div>
+    </footer>
+
+    <div class="whatsapp-float">
+        <a href="https://wa.me/201024412655?text=مرحباً%20شركة%20توصيلة،%20أريد%20الاستفسار%20عن%20خطوط%20السير%20المتاحة" class="whatsapp-btn" target="_blank">
+            <svg viewBox="0 0 32 32">
+                <path d="M16 2A14 14 0 0 0 2 16a13.9 13.9 0 0 0 1.9 7L2 30l7.3-1.9A13.9 13.9 0 0 0 16 30a14 14 0 0 0 0-28zm7.5 19.9c-.3.9-1.6 1.7-2.2 1.8-.6.1-1.3.2-3.7-.8a12.7 12.7 0 0 1-5.4-4.7 6 6 0 0 1-1.2-3.3 3.6 3.6 0 0 1 1.2-2.7c.3-.3.6-.4.8-.4h.5c.2 0 .4 0 .6.4l1.1 2.7c.1.3 0 .6-.2.8l-.7.9c-.2.2-.4.5-.2.8A9 9 0 0 0 17 19.3c.6.5 1.1.7 1.4.5l.9-.9c.3-.3.6-.2.9-.1l2.7 1.3c.4.2.5.4.5.6 0 .5-.3 1.8-.9 2.2z"/>
+            </svg>
+            <span>راسلنا على واتساب</span>
+        </a>
+    </div>
+
+    <div class="modal-overlay" id="successModal">
+        <div class="modal">
+            <div class="modal-icon">✔</div>
+            <h3>تم استلام طلبك بنجاح!</h3>
+            <p>شكراً لتسجيلك في شركة <span style="color:var(--emerald); font-weight:bold;">توصيلة</span>. سيقوم موظف خدمة العملاء بمراجعة خط السير والتواصل معك هاتفياً أو عبر الواتساب في أقرب وقت ممكن لتأكيد الحجز.</p>
+            <button class="modal-close" onclick="closeModal()">موافق</button>
+        </div>
+    </div>
+
+    <script>
+        // الأيقونات الخاصة بالثيمات (SVG الشمس والقمر)
+        const sunIcon = `<path d="M12 7c-2.76 0-5 2.24-5 5s2.24 5 5 5 5-2.24 5-5-2.24-5-5-5zM2 13h2c.55 0 1-.45 1-1s-.45-1-1-1H2c-.55 0-1 .45-1 1s.45 1 1 1zm18 0h2c.55 0 1-.45 1-1s-.45-1-1-1h-2c-.55 0-1 .45-1 1s.45 1 1 1zM11 2v2c0 .55.45 1 1 1s1-.45 1-1V2c0-.55-.45-1-1-1s-1 .45-1 1zm0 18v2c0 .55.45 1 1 1s1-.45 1-1v-2c0-.55-.45-1-1-1s-1 .45-1 1zM5.99 4.58a.996.996 0 0 0-1.41 0 .996.996 0 0 0 0 1.41l1.06 1.06c.39.39 1.03.39 1.41 0s.39-1.03 0-1.41L5.99 4.58zm12.37 12.37a.996.996 0 0 0-1.41 0 .996.996 0 0 0 0 1.41l1.06 1.06c.39.39 1.03.39 1.41 0s.39-1.03 0-1.41l-1.06-1.06zm1.06-12.37a.996.996 0 0 0 0-1.41.996.996 0 0 0-1.41 0l-1.06 1.06c-.39.39-.39 1.03 0 1.41s1.03.39 1.41 0l1.06-1.06zM7.05 18.01a.996.996 0 0 0 0-1.41.996.996 0 0 0-1.41 0l-1.06 1.06c-.39.39-.39 1.03 0 1.41s1.03.39 1.41 0l1.06-1.06z"/>`;
+        const moonIcon = `<path d="M12.3 2a10 10 0 0 0-1.9 19.8 10 10 0 0 0 11.5-11.5 10.2 10.2 0 0 1-9.6-8.3z"/>`;
+
+        // دالة تحديد الأيقونة المناسبة للوضع المختار
+        function updateToggleIcon(theme) {
+            const iconContainer = document.getElementById('themeToggleIcon');
+            if (theme === 'dark') {
+                iconContainer.innerHTML = sunIcon;
+            } else {
+                iconContainer.innerHTML = moonIcon;
+            }
+        }
+
+        // دالة تبديل الثيم وحفظه في الـ LocalStorage
+        function toggleTheme() {
+            const currentTheme = document.documentElement.getAttribute('data-theme');
+            let newTheme = 'light';
+            
+            if (currentTheme !== 'dark') {
+                newTheme = 'dark';
+            }
+            
+            document.documentElement.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+            updateToggleIcon(newTheme);
+        }
+
+        // دالة الفحص الأولي للثيم المفضل عند فتح الصفحة
+        (function initTheme() {
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+            // الانتظار للتأكد من تحميل الـ DOM قبل تحديث الأيقونة
+            window.addEventListener('DOMContentLoaded', () => {
+                updateToggleIcon(savedTheme);
+            });
+        })();
+
+        // دالة الأنيميشن الانسيابي عند السكرول (Scroll Reveal)
+        function initScrollReveal() {
+            const reveals = document.querySelectorAll('.reveal');
+            
+            const observerOptions = {
+                root: null, // يعتمد على نافذة الـ viewport
+                threshold: 0.15, // هيبدأ الأنيميشن أول ما يظهر 15% من السيكشن
+                rootMargin: "0px 0px -50px 0px" // بيعطي مسافة أمان لظهور ناعم
+            };
+
+            const observer = new IntersectionObserver((entries, observer) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('active');
+                        observer.unobserve(entry.target); // تشغيل الأنيميشن مرة واحدة فقط لضمان الأداء
+                    }
+                });
+            }, observerOptions);
+
+            reveals.forEach(reveal => observer.observe(reveal));
+        }
+
+        // تشغيل مراقب السكرول بمجرد تحميل الكود
+        window.addEventListener('DOMContentLoaded', initScrollReveal);
+
+        // تأثير تحريك النافبار عند النزول
+        window.addEventListener('scroll', function() {
+            const navbar = document.getElementById('navbar');
+            if (window.scrollY > 50) {
+                navbar.classList.add('scrolled');
+            } else {
+                navbar.classList.remove('scrolled');
+            }
+        });
+
+        // منيو الموبايل المتجاوبة
+        function toggleMenu() {
+            const menu = document.getElementById('mobileMenu');
+            menu.classList.toggle('active');
+        }
+
+        // معالجة إرسال الفورم وظهور المودال
+        function handleFormSubmit(event) {
+            event.preventDefault();
+            document.getElementById('successModal').classList.add('active');
+            document.getElementById('bookingForm').reset();
+        }
+
+        function closeModal() {
+            document.getElementById('successModal').classList.remove('active');
+        }
+    </script>
+</body>
+</html>
